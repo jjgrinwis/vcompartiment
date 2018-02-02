@@ -1,0 +1,103 @@
+module vcompartiment {
+
+  namespace "http://telindus.nl/vcompartiment";
+  prefix vcompartiment;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+  import vfirewall {
+  	prefix vfirewall;
+  }
+  import vzone {
+  	prefix vzone;
+  }
+  import tailf-ned-cisco-ios {
+    prefix ios;
+  }
+  
+  description "vcompartiment service";
+
+  revision 2016-01-01 {
+    description
+      "Initial revision.";
+  }
+
+  augment "/ncs:services" {
+    list vcompartiment { 
+      uses ncs:service-data;
+      ncs:servicepoint vcompartiment-servicepoint;
+
+      description "The vcompartiment service. name, vlan-id and network should be unique";
+
+      key name;
+      unique vlan-id;
+      unique network;
+      leaf name {
+        tailf:info "Unique service name";
+        type string {
+          length "5..50" {
+            error-message "length of string should be between 5 and 50 characters";
+          }
+        }
+      }
+
+      leaf vlan-id {
+      	mandatory true;
+        type uint16 {
+          range "100..500" {
+            error-message "only vlan-ids betweeb 100 and 500 are allowed";
+          }
+        }
+        tailf:info "unique vlan-id of this vcompartiment service";
+      } 
+
+      leaf network {
+        description "first two address from this space will be used as primary and secondary address";
+      	mandatory true;
+        type tailf:ip-address-and-prefix-length;
+        tailf:info "unique netwerk attached to this vcompartiment";
+      }
+
+      container device-interfaces {
+      	tailf:info "device and interfaces part of this vcompartiment service";
+        //tailf:display-when "count(../vzone) > 0";
+	    when "count(../vzone) > 0";
+        leaf device {
+	      type leafref {
+	        path "/ncs:services/vzone:vzone[vzone:name=current()/../../vzone]/vzone:device";
+	      }
+	   	  tailf:info "provide device attached to this vcompartiment service. Device should be defined in vzone";
+	    }
+
+	    leaf interface {
+	    	when "count(../device) > 0";
+	      	type leafref {
+	          path "/ncs:devices/ncs:device[ncs:name=current()/../device]/ncs:config/ios:interface/ios:GigabitEthernet/ios:name";
+	        }
+	        tailf:info "interface on this device where device is connected too";
+	    }
+	  }
+
+	  leaf vzone {
+ 	  	description "vcompartiment can be member of one vzone and device in container device-infterfaces should exists.";
+ 	  	tailf:info "vzone this vcompartiment is attached too";
+ 	  	type leafref {
+ 	  		path "/ncs:services/vzone:vzone/vzone:name";
+ 	  	}
+ 	  }
+
+      container vfirewall {
+      	tailf:info "firewall rules attached to this vcompartiment";
+      	presence "vfirewall";
+ 		    uses vfirewall:vfirewall;
+ 	  }
+	}
+  }
+}

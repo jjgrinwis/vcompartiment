@@ -1,0 +1,43 @@
+module vzone {
+  namespace "http://telindus.nl/vzone";
+  prefix vzone;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  description
+    "our vzone service which is a VRF";
+
+  revision 2018-02-01 {
+    description
+      "Initial revision.";
+  }
+
+  augment "/ncs:services" {
+    list vzone {
+      tailf:info "vzone(L3) service";
+      uses ncs:service-data;
+      ncs:servicepoint vzone-servicepoint;
+      
+      key name;
+      leaf name {
+        tailf:info "Unique vzone name";
+        type string;
+      }
+
+      leaf-list device {
+        tailf:info "provide devices part of this vzone";
+        type leafref {
+          path "/ncs:devices/ncs:device/ncs:name";
+        }
+      }
+    } 
+  }
+}

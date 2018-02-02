@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+   <devices xmlns="http://tail-f.com/ns/ncs">
+      <device>
+         <name>{$DEVICE}</name>
+         <config>
+            <interface xmlns="urn:ios">
+               <GigabitEthernet>
+                  <name>{$INTERFACE}.{$VLAN-ID}</name>
+                  <encapsulation>
+                     <dot1Q>
+                        <vlan-id>{$VLAN-ID}</vlan-id>
+                     </dot1Q>
+                  </encapsulation>
+                  <vrf>
+                     <forwarding>{$VZONE}</forwarding>
+                  </vrf>
+                  <ip>
+                     <access-group>
+                       <direction>in</direction>
+                       <access-list>{$ACL}</access-list>
+                     </access-group>
+                     <address>
+                        <primary>
+                           <address>{$IP_ADDRESS}</address>
+                           <mask>{$IP_CIDR}</mask>
+                        </primary>
+                     </address>
+                  </ip>
+               </GigabitEthernet>
+            </interface>
+         </config>
+      </device>
+   </devices>
+</config-template>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
+   <devices xmlns="http://tail-f.com/ns/ncs">
+      <device>
+         <name>{$DEVICE}</name>
+         <config>
+            <router xmlns="urn:ios">
+               <bgp>
+                  <as-no>65400</as-no>
+                  <address-family>
+                     <with-vrf>
+                        <ipv4>
+                           <af>unicast</af>
+                           <vrf>
+                              <name>{$VZONE}</name>
+                              <network>
+                                 <number>{$IP_NETWORK}</number>
+                                 <mask>{$IP_CIDR}</mask>
+                              </network>
+                           </vrf>
+                        </ipv4>
+                     </with-vrf>
+                  </address-family>
+               </bgp>
+            </router>
+         </config>
+      </device>
+   </devices>
+</config-template>

@@ -1,0 +1,81 @@
+module vfirewall {
+
+  namespace "http://telindus.nl/vfirewall";
+  prefix vfirewall;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+  import tailf-ned-cisco-ios { 
+    prefix ios; 
+  }
+
+  revision 2016-01-01 {
+    description
+      "Initial revision.";
+  }
+
+  grouping acl {
+    list access-list-rules {
+      ordered-by user;
+      key name;
+      leaf name {
+        type string;
+      }
+      leaf action {
+        mandatory true;
+        type enumeration {
+          enum permit;
+          enum deny; 
+        }
+      }
+      leaf src-ip {
+        mandatory true;
+        type inet:ipv4-address;
+      }
+      leaf src-mask {
+        mandatory true;
+        type inet:ipv4-address;
+      }
+      leaf dest-ip {
+        mandatory true;
+        type inet:ipv4-address;
+      }
+      leaf dest-mask {
+        mandatory true;
+        type inet:ipv4-address;
+      }
+    }
+  }
+
+  augment /ncs:services {
+
+    list vfirewall {
+      description "This is the vfirewall service";
+
+      uses ncs:service-data;
+      ncs:servicepoint vfirewall-servicepoint;
+
+      key name;
+      leaf name {
+        tailf:info "Unique vfirewall service name";
+        type string;
+      }
+
+      leaf device {
+        type leafref {
+          path "/ncs:devices/ncs:device/ncs:name";
+        }
+      }
+
+      uses acl;
+
+    }
+  }
+}

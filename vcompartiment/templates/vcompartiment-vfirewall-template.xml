@@ -1,0 +1,16 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <services xmlns="http://tail-f.com/ns/ncs">
+  <vfirewall xmlns="http://telindus.nl/vfirewall">
+    <name>{$NAME}</name>
+    <device>{$DEVICE}</device>
+    <access-list-rules foreach="{/access-list-rules}">
+      <name>{name}</name>
+      <action>{action}</action>
+      <src-ip>{src-ip}</src-ip>
+      <src-mask>{src-mask}</src-mask>
+      <dest-ip>{dest-ip}</dest-ip>
+      <dest-mask>{dest-mask}</dest-mask>
+    </access-list-rules>
+  </vfirewall>
+  </services>
+</config>
