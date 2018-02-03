@@ -19,11 +19,11 @@ class ServiceCallbacks(Service):
         self.log.info('Service create(service=', service._path, ')')
 
         # create Variable object
-        vars = ncs.template.Variables()
+        tvars = ncs.template.Variables()
 
         # lets get network leaf from our service
         # this is a network/subnet format
-        self.log.info('vars= ',service)
+        self.log.info('vars= ', service)
         network = service.network
         device = service.device_interfaces.device
         interface = service.device_interfaces.interface
@@ -33,8 +33,8 @@ class ServiceCallbacks(Service):
 
         # now split received network and calculate CIDR and GW address
         ipstr, net_bits = network.split('/')
-       
-        # stransform IP to int, add 1  and convert back to ip address 
+
+        # transform IP to int, add 1 and convert back to ip address
         ip2int = struct.unpack('!I', socket.inet_aton(ipstr))[0] + 1
         address = socket.inet_ntoa(struct.pack('!I', ip2int))
 
@@ -43,34 +43,39 @@ class ServiceCallbacks(Service):
         netmask = socket.inet_ntoa(struct.pack('!I', (1 << 32) - (1 << host_bits)))
 
         # now apply our vars to the template
-        vars.add('IP_CIDR', netmask) 
-        vars.add('IP_ADDRESS', address)
-        vars.add('DEVICE', device) 
-        vars.add('INTERFACE', interface)
-        vars.add('VLAN-ID', vlan_id)
-        vars.add('VZONE', vzone)
-        vars.add('IP_NETWORK', ipstr)
+        tvars.add('IP_CIDR', netmask)
+        tvars.add('IP_ADDRESS', address)
+        tvars.add('DEVICE', device)
+        tvars.add('INTERFACE', interface)
+        tvars.add('VLAN-ID', vlan_id)
+        tvars.add('VZONE', vzone)
+        tvars.add('IP_NETWORK', ipstr)
 
-        self.log.info('vars= ',vars)
+        self.log.info("vars= ", tvars)
 
-        # ow check if there is any vfirewall config
+        # inow check if there is any vfirewall config
         if service.vfirewall.exists():
-          self.log.info('vFirewall config exists, will create vFirewall instance')
-          vftemplate = ncs.template.Template(service.vfirewall) 
-          tvars = ncs.template.Variables()
-          vfirewall = "fw-" + service.name 
-          tvars.add('NAME', vfirewall)
-          tvars.add('DEVICE', device)
-          vftemplate.apply('vcompartiment-vfirewall-template', tvars)
-          self.log.info('vars= ', tvars)
-          vars.add("ACL", vfirewall);
+            self.log.info('vFirewall config exists, will create vFirewall instance')
+            vftemplate = ncs.template.Template(service.vfirewall)
+            vfvars = ncs.template.Variables()
+
+            vfirewall = "fw-" + service.name
+            vfvars.add('NAME', vfirewall)
+            vfvars.add('DEVICE', device)
+            vftemplate.apply('vcompartiment-vfirewall-template', vfvars)
+
+            self.log.info("vars= ", vfvars)
+
+            tvars.add("ACL", vfirewall)
         else:
-          vars.add("ACL", "default-deny");
+            tvars.add("ACL", "default-deny");
 
-        template = ncs.template.Template(service)
-        template.apply('vcompartiment-template', vars)
-        template.apply('vcompartiment-bgp-template', vars)
-
+        # check if device is set, if not don't try to apply the template
+        if device:
+            self.log.info("configuring device ", device)
+            template = ncs.template.Template(service)
+            template.apply('vcompartiment-template', tvars)
+            template.apply('vcompartiment-bgp-template', tvars)
 
     # The pre_modification() and post_modification() callbacks are optional,
     # and are invoked outside FASTMAP. pre_modification() is invoked before
