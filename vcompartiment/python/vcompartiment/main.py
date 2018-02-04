@@ -1,10 +1,10 @@
 # -*- mode: python; python-indent: 4 -*-
-import ncs
-from ncs.application import Service
-
-# some tools to calculate subnet
+# import two extra package for netmask calculation
 import socket
 import struct
+
+import ncs
+from ncs.application import Service
 
 
 # ------------------------
