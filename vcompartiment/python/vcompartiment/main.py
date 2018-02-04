@@ -53,22 +53,27 @@ class ServiceCallbacks(Service):
 
         self.log.info("vars= ", tvars)
 
-        # inow check if there is any vfirewall config
+        # now check if there is any vfirewall config
         if service.vfirewall.exists():
             self.log.info('vFirewall config exists, will create vFirewall instance')
             vftemplate = ncs.template.Template(service.vfirewall)
             vfvars = ncs.template.Variables()
 
+            # create some vars to be used in our template
             vfirewall = "fw-" + service.name
             vfvars.add('NAME', vfirewall)
             vfvars.add('DEVICE', device)
+
+            # we're now using template to write service parameters under ncs:/services/vfirewall
+            # this will create our stacked vfirewall service
             vftemplate.apply('vcompartiment-vfirewall-template', vfvars)
 
             self.log.info("vars= ", vfvars)
 
+            # name of vfirewall ACL used in this vcompartiment service
             tvars.add("ACL", vfirewall)
         else:
-            tvars.add("ACL", "default-deny");
+            tvars.add("ACL", "default-deny")
 
         # check if device is set, if not don't try to apply the template
         if device:
