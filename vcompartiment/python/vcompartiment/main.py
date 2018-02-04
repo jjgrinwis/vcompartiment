@@ -6,7 +6,6 @@ import struct
 import ncs
 from ncs.application import Service
 
-
 # ------------------------
 # SERVICE CALLBACK EXAMPLE
 # ------------------------
@@ -21,17 +20,15 @@ class ServiceCallbacks(Service):
         # create Variable object
         tvars = ncs.template.Variables()
 
-        # lets get network leaf from our service
-        # this is a network/subnet format
         self.log.info('vars= ', service)
-        network = service.network
+
+        # to keep XML simple, just get info from container and put in var.
         device = service.device_interfaces.device
         interface = service.device_interfaces.interface
-        vzone = service.vzone
-        vlan_id = service.vlan_id
-        self.log.info('network= ', network)
 
-        # now split received network and calculate CIDR and GW address
+        # lets get network leaf from our service
+        # this is a network/subnet format just split to calculate.
+        network = service.network
         ipstr, net_bits = network.split('/')
 
         # transform IP to int, add 1 and convert back to ip address
@@ -42,13 +39,12 @@ class ServiceCallbacks(Service):
         host_bits = 32 - int(net_bits)
         netmask = socket.inet_ntoa(struct.pack('!I', (1 << 32) - (1 << host_bits)))
 
-        # now apply our vars to the template
+        # now apply all our created vars to the template
+        # device and interface added to keep XML simple, the rest pure leafs in XML template.
         tvars.add('IP_CIDR', netmask)
         tvars.add('IP_ADDRESS', address)
         tvars.add('DEVICE', device)
         tvars.add('INTERFACE', interface)
-        tvars.add('VLAN-ID', vlan_id)
-        tvars.add('VZONE', vzone)
         tvars.add('IP_NETWORK', ipstr)
 
         self.log.info("vars= ", tvars)

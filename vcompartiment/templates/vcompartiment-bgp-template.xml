@@ -12,7 +12,7 @@
                         <ipv4>
                            <af>unicast</af>
                            <vrf>
-                              <name>{$VZONE}</name>
+                              <name>{vzone}</name>
                               <network>
                                  <number>{$IP_NETWORK}</number>
                                  <mask>{$IP_CIDR}</mask>
