@@ -1,5 +1,10 @@
 netsim
+cisco-asa
+cisco-nx
+cisco-ios
+cisco-iosxr
+juniper-junos
 ncs-run
 .idea
-.fxs
+*.fxs
 Makefile

@@ -21,8 +21,8 @@ class ServiceCallbacks(Service):
 
         # let's create our default dict. This ACL should be active on device!
         vfirewalls = {
-            "in": "fw-default-deny-in",
-            "out": "fw-default-deny-out"
+            "in": "default-deny",
+            "out": "default-deny"
         }
 
         # first check if there is any vfirewall list and device attached to this service
