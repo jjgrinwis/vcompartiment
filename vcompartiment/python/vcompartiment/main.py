@@ -11,6 +11,53 @@ from ncs.application import Service
 # ------------------------
 class ServiceCallbacks(Service):
 
+    def _acl_create(self, service):
+        """
+        This is a private method that will create the ACLs attached to this service.
+        If there is no vfirewall configured, the defaults will be used for in and out.
+
+        Return value wil be dict with our created firewalls and their direction as the key
+        """
+
+        # let's create our default dict. This ACL should be active on device!
+        vfirewalls = {
+            "in": "fw-default-deny-in",
+            "out": "fw-default-deny-out"
+        }
+
+        # first check if there is any vfirewall list and device attached to this service
+        # if there is no device, don't bother to build the ACL for now
+        if service.vfirewall and service.device_interfaces.device:
+            self.log.info('vFirewall config exists and attached to a device, \
+                            create a vFirewall instance and attach to interface')
+
+            # in our service there is a possibility of two ACLs, an in an out.
+            for acl in service.vfirewall:
+
+                # had to convert this to a string, otherwise key in dict won't work
+                direction = str(acl.direction)
+                self.log.info('lets configure direction ', direction)
+
+                vftemplate = ncs.template.Template(service.vfirewall)
+                vfvars = ncs.template.Variables()
+
+                # create some vars to be used in our template
+                vfirewall = "fw-{0}-{1}".format(service.name, direction)
+                vfirewalls[direction] = vfirewall
+                device = service.device_interfaces.device
+                vfvars.add('NAME', vfirewall)
+                vfvars.add('DEVICE', device)
+                vfvars.add('DIRECTION', direction)
+
+                # we're now using template to write service parameters under ncs:/services/vfirewall
+                # this will create our stacked vfirewall service.
+                vftemplate.apply('vcompartiment-vfirewall-template', vfvars)
+
+        # now return dict with our named ACLs and their direction
+        self.log.info('vfirewall dict()', vfirewalls)
+        return vfirewalls
+
+
     # The create() callback is invoked inside NCS FASTMAP and
     # must always exist.
     @Service.create
@@ -49,34 +96,18 @@ class ServiceCallbacks(Service):
 
         self.log.info("vars= ", tvars)
 
-        # now check if there is any vfirewall config
-        if service.vfirewall.exists():
-            self.log.info('vFirewall config exists, will create vFirewall instance')
-            vftemplate = ncs.template.Template(service.vfirewall)
-            vfvars = ncs.template.Variables()
-
-            # create some vars to be used in our template
-            vfirewall = "fw-" + service.name
-            vfvars.add('NAME', vfirewall)
-            vfvars.add('DEVICE', device)
-
-            # we're now using template to write service parameters under ncs:/services/vfirewall
-            # this will create our stacked vfirewall service
-            vftemplate.apply('vcompartiment-vfirewall-template', vfvars)
-
-            self.log.info("vars= ", vfvars)
-
-            # name of vfirewall ACL used in this vcompartiment service
-            tvars.add("ACL", vfirewall)
-        else:
-            tvars.add("ACL", "default-deny")
-
         # check if device is set, if not don't try to apply the template
         if device:
             self.log.info("configuring device ", device)
             template = ncs.template.Template(service)
             template.apply('vcompartiment-template', tvars)
             template.apply('vcompartiment-bgp-template', tvars)
+
+            # loop through our dict. key is direction, value the named ACL
+            for key, value in self._acl_create(service).items():
+                tvars.add('DIRECTION', key)
+                tvars.add('ACL', value)
+                template.apply('vcompartiment-acl-template', tvars)
 
     # The pre_modification() and post_modification() callbacks are optional,
     # and are invoked outside FASTMAP. pre_modification() is invoked before

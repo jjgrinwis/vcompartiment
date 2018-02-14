@@ -3,7 +3,7 @@
   <vfirewall xmlns="http://telindus.nl/vfirewall">
     <name>{$NAME}</name>
     <device>{$DEVICE}</device>
-    <access-list-rules foreach="{/access-list-rules}">
+    <access-list-rules foreach="{/../vfirewall[direction=$DIRECTION]/access-list-rules}">
       <name>{name}</name>
       <action>{action}</action>
       <src-ip>{src-ip}</src-ip>

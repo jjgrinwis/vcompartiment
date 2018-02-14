@@ -93,11 +93,24 @@ module vcompartiment {
  	  	}
  	  }
 
-      container vfirewall {
-      	tailf:info "firewall rules attached to this vcompartiment";
-      	presence "vfirewall";
- 		    uses vfirewall:vfirewall;
- 	  }
-	}
+      list vfirewall {
+        tailf:info "provide the input and output ACL rules for this service";
+        max-elements 2;
+        key direction;
+
+        leaf direction {
+          tailf:info "Direction of this vfirewall [in,out]";
+          mandatory true;
+          type enumeration {
+            enum in;
+            enum out;
+          }
+        }
+
+        // now use ACL group list from our vfirewall service
+        uses vfirewall:acl;
+
+      }
+    }
   }
 }

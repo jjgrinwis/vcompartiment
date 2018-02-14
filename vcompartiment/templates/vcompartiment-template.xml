@@ -16,10 +16,6 @@
                      <forwarding>{vzone}</forwarding>
                   </vrf>
                   <ip>
-                     <access-group>
-                       <direction>in</direction>
-                       <access-list>{$ACL}</access-list>
-                     </access-group>
                      <address>
                         <primary>
                            <address>{$IP_ADDRESS}</address>

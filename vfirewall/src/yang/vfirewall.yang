@@ -1,5 +1,4 @@
 module vfirewall {
-
   namespace "http://telindus.nl/vfirewall";
   prefix vfirewall;
 
@@ -23,7 +22,9 @@ module vfirewall {
 
   grouping acl {
     list access-list-rules {
+      tailf:info "ACL rules part of this vfirewall service. Can be ordered by user";
       ordered-by user;
+
       key name;
       leaf name {
         type string;
@@ -69,6 +70,7 @@ module vfirewall {
       }
 
       leaf device {
+        tailf:info "Device is ACL is going to be configured on";
         type leafref {
           path "/ncs:devices/ncs:device/ncs:name";
         }
